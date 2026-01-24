@@ -80,13 +80,16 @@ void loop() {
         }
   }
 
-  if (bad_count > 5) {
-    tone(passive_buzzer_pin, 90); // plays tone
+  if (bad_count == 3) {
     num_alerts += 1;
+  }
+  
+  if (bad_count > 3) {
+    tone(passive_buzzer_pin, 90); // plays tone
     if (distance1 < distance2) {
       good_count += 1;
     }
-    if (good_count > 5) {
+    if (good_count > 3) {
       bad_count = 0;
       pinMode(passive_buzzer_pin, LOW);
       good_count = 0;
@@ -95,7 +98,7 @@ void loop() {
     pinMode(passive_buzzer_pin, LOW);
   }
 
-  if (distance1 > distance2 + 1) {
+  if (distance1 > distance2) {
     bad_count += 1; 
   } 
 
