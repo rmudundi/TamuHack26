@@ -32,22 +32,20 @@ void dumpData() {
 
   int count = 0;
 
-    Serial.println("Address, Value");
+    Serial.println("Number of Alerts |  Bad Count");
+    Serial.println("---------------------------");
 
     for (int address = 0; address < 1024; address++){
-
       byte value = EEPROM.read(address);
 
-      Serial.print(address);
-
-      Serial.print(",");
-
-      Serial.println(value);
-
+      Serial.print(value);
+      if (address%2==0){
+        Serial.println("");
+      }else{
+        Serial.print(", ");
+      }
     }
-
     Serial.print("-----EOF------");
-
     filedone = 1;
   }
 
@@ -55,30 +53,29 @@ void loop() {
   // put your main code here, to run repeatedly:
   distance1 = sensor1.Distance();
   distance2 = sensor2.Distance();
-  Serial.print("Distance 1: ");
-  Serial.println(distance1);
-  Serial.print("Distance 2: ");
-  Serial.println(distance2);
-
-  EEPROM.write(currentaddress,distance1);
-  currentaddress++;
 
   if (Serial.available() > 0){
 
     char command = Serial.read();
-        if (command == 'd') {
-      dumpData();
-      if(filedone){
-        exit(0);
-      }
+
     if (command == 'd') {
       dumpData();
       if(filedone){
         exit(0);
       }
     }
-        }
+
+    if(command == 'c'){
+      Serial.println("Clearing...");
+      for(int i=0; i< EEPROM.length(); i++){
+        EEPROM.write(i,255);
+      }
+      currentaddress = 0;
+      bad_count = 0;
+    }
+    Serial.println("Cleared");
   }
+  
 
   if (bad_count == 3) {
     num_alerts += 1;
@@ -105,10 +102,18 @@ void loop() {
   // tone(passive_pin, 90); // turn passive buzzer on
   delay(800);
 
-  Serial.print("Bad Count: ");
-  Serial.println(bad_count);
-  Serial.print("Good Count: ");
-  Serial.println(good_count);
+  //Serial.print("Bad Count: ");
+  Serial.print(bad_count);
+  EEPROM.write(currentaddress,bad_count);
+  currentaddress++;
+
+  Serial.print(", ");
+  
+
+  //Serial.print("Number of Alerts: ");
+  Serial.println(num_alerts);
+  EEPROM.write(currentaddress,num_alerts);
+  currentaddress++;
 }
 
 //right side goes to shoulder
