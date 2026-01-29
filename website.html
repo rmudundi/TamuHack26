@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>#PosturePerfect</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body style="text-align: center; background-color: lightblue; font-family: Arial;">
+    <div style="margin-top: 100px;"></div>
+</body>
+    <h1>Welcome to #PosturePerfect</h1>
+    <img src="Posture Device.jpeg" alt="PosturePerfect device" style="width: 500px;">
+    <h2>About</h2>
+    <p>Tired of back pain from slouching? Our device ensures healthier posture while you work or study.</p>
+    <p style="max-width: 700px; margin: 0 auto;">
+    PosturePerfect utilizes two ultrasonic distance
+    sensors which are placed on a chair aimed at two 
+    different areas of the back. If the difference in the 
+    distance between the sensors to your back is greater than zero,
+    it means you are slouching. The device will alert you by sounding
+    a buzzer that will continue going off until you fix your posture.
+</p>
+    <h2>View your stats!</h2>
+    <p>Upload your Excel file to see your number of posture alerts for this session:</p>
+    
+    <br>
+    
+    <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" onchange="handleFileUpload(event)">
+    
+    <br><br>
+    
+    <div id="result" style="display:none;">
+        <h2>Total Alerts: <span id="alertCount">0</span></h2>
+    </div>
+
+    <script>
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    if (jsonData.length === 0) {
+                        alert('No data found');
+                        return;
+                    }
+                    
+                    const leftColumn = jsonData.map(row => row[0]).filter(val => val !== undefined && val !== null && val !== '');
+                    
+                    if (leftColumn.length === 0) {
+                        alert('No data in leftmost column');
+                        return;
+                    }
+                    
+                    let alertCount = 0;
+                    let lastValue = null;
+                    
+                    for (let value of leftColumn) {
+                        const numValue = parseInt(value);
+                        
+                        if (numValue === 255) {
+                            break;
+                        }
+                        
+                        if (lastValue === null || numValue !== lastValue) {
+                            if (!isNaN(numValue)) {
+                                alertCount++;
+                                lastValue = numValue;
+                            }
+                        }
+                    }
+                    
+                    document.getElementById('alertCount').textContent = alertCount;
+                    document.getElementById('result').style.display = 'block';
+                    
+                } catch (error) {
+                    alert('Error reading file');
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
